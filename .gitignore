@@ -1,4 +1,7 @@
-.*/
+.git/
+.idea/
+.vscode/
+.atom/
 node_modules/
 dist/
 .env
