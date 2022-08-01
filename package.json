@@ -1,7 +1,7 @@
 {
   "name": "counting",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "counting.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run prettier && npm run build:typescript",
@@ -21,6 +21,7 @@
   "dependencies": {
     "@joshdb/core": "^1.2.7",
     "@joshdb/mongo": "^1.1.6",
+    "@joshdb/sqlite": "^1.1.9",
     "discord-api-types": "^0.37.0",
     "discord.js": "^14.1.2",
     "dotenv": "^16.0.1"

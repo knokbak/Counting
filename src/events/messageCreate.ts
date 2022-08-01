@@ -71,9 +71,9 @@ export default class MessageCreate {
         if (int !== this.tempCount + 1) {
             try {
                 message.author.send({
-                    content: `That number was not correct! The next number is ${
-                        (this.tempCount + 1).toLocaleString('en-US')
-                    }.`,
+                    content: `That number was not correct! The next number is ${(
+                        this.tempCount + 1
+                    ).toLocaleString('en-US')}.`,
                 });
             } catch (e) {}
             return;

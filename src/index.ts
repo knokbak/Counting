@@ -16,12 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import * as dotenv from 'dotenv';
-dotenv.config();
+import * as Dotenv from 'dotenv';
+Dotenv.config();
 
 import { Client } from 'discord.js';
+import Josh from '@joshdb/core'; // @ts-ignore
+import SQLite from '@joshdb/sqlite';
 import { readdirSync } from 'fs';
 import Path from 'path';
+
+const dbOptions = {};
 
 export default class Bot {
     client: Client = new Client({
@@ -30,6 +34,13 @@ export default class Bot {
             parse: ['users'],
         },
     });
+    databases = {
+        counts: new Josh({
+            name: 'counts',
+            provider: SQLite,
+            providerOptions: {},
+        }),
+    };
 
     async init() {
         for (const file of readdirSync(Path.join(__dirname, 'events'))) {
