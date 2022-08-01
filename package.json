@@ -2,6 +2,7 @@
   "name": "counting",
   "version": "1.0.0",
   "main": "counting.js",
+  "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run prettier && npm run build:typescript",
