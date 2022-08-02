@@ -26,9 +26,9 @@ import createClient from './utils/client.js';
 import createCommands from './utils/commands.js';
 import createListeners from './utils/listeners.js';
 import readdirp from 'readdirp';
-import { pathToFileURL, fileURLToPath } from 'url';
+import { fileURLToPath } from 'url';
 import { GatewayIntentBits } from 'discord.js';
-// try now ig
+
 const client = createClient({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
     allowedMentions: {
