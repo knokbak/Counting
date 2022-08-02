@@ -16,83 +16,92 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import Bot from '../index';
-import { Message, WebhookClient } from 'discord.js';
+import Bot from '../utils/Bot';
+import { injectable } from 'tsyringe';
+import IListener from '../utils/structures/Listener.js';
+import { Message, Events } from 'discord.js';
 
-export default class MessageCreate {
-    readonly name = 'messageCreate';
-    bot: Bot;
+@injectable()
+export default class MessageCreate implements IListener<typeof Events.MessageCreate> {
+    public name: Events.MessageCreate = Events.MessageCreate;
 
-    tempCount: number = 1_911_996;
+    public async execute(message: Message) {
+        if (message.channel.id !== '1003780101214838917') return;
 
-    constructor(bot: Bot) {
-        this.bot = bot;
-    }
-
-    async handle(message: Message) {
-        if (
-            message.channel.id !== '1003780101214838917' ||
-            message.author.bot
-        ) {
-            return;
-        }
-
-        console.log(`${message.author.tag}: ${message.content}`);
-        message.delete();
-
-        if (
-            message.author.id === '534479985855954965' &&
-            message.content.startsWith('!eval ')
-        ) {
-            const code = message.content.substring(6);
-            try {
-                try {
-                    const result = await eval(code);
-                    console.log(result);
-                    message.author.send(
-                        `\`\`\`js\n${`${result}`.substring(0, 1500)}\n\`\`\``
-                    );
-                } catch (err) {
-                    message.author.send(
-                        // @ts-ignore
-                        `\`\`\`js\n${`${err.stack}`.substring(0, 1500)}\n\`\`\``
-                    );
-                    console.error(err);
-                }
-            } catch (e) {}
-            return;
-        }
-
-        const int = parseInt(message.content.replace(/\D/g, ''));
-        if (isNaN(int)) {
-            return;
-        }
-
-        if (int !== this.tempCount + 1) {
-            try {
-                message.author.send({
-                    content: `That number was not correct! The next number is ${(
-                        this.tempCount + 1
-                    ).toLocaleString('en-US')}.`,
-                });
-            } catch (e) {}
-            return;
-        }
-
-        this.tempCount++;
-
-        const webhook = new WebhookClient(
-            {
-                id: `${process.env.DISCORD_WEBHOOK_ID}`,
-                token: `${process.env.DISCORD_WEBHOOK_TOKEN}`,
-            },
-            {}
-        );
-
-        webhook.send({
-            content: `${Math.floor(int).toLocaleString('en-US')}`,
-            username: message.author.username,
-            avatarURL: message.author.displayAvatarURL(),
-        });
+        if (message.content === '!test') return message.channel.send('hi!');
     }
 }
+
+// export default class MessageCreate {
+//     readonly name = 'messageCreate';
+//     bot: Bot;
+
+//     constructor(bot: Bot) {
+//         this.bot = bot;
+//     }
+
+//     async handle(message: Message) {
+//         if (
+//             message.channel.id !== '1003780101214838917' ||
+//             message.author.bot
+//         ) return;
+
+//         console.log(`${message.author.tag}: ${message.content}`);
+//         message.delete();
+
+//         if (
+//             message.author.id === '534479985855954965' &&
+//             message.content.startsWith('!eval ')
+//         ) {
+//             // TODO: move this eyesore somewhere else
+//             const code = message.content.substring(6);
+//             try {
+//                 try {
+//                     const result = await eval(code);
+//                     console.log(result);
+//                     message.author.send(
+//                         `\`\`\`js\n${`${result}`.substring(0, 1500)}\n\`\`\``
+//                     );
+//                 } catch (err) {
+//                     message.author.send(
+//                         // @ts-ignore
+//                         `\`\`\`js\n${`${err.stack}`.substring(0, 1500)}\n\`\`\``
+//                     );
+//                     console.error(err);
+//                 }
+//             } catch {}
+//             return;
+//         }
+
+//         const int = Number.parseInt(message.content.replace(/\D/g, ''));
+//         if (Number.isNaN(int)) return;
+
+//         const currentCount = this.bot.caches.counts.get(message.guild!.id);
+
+//         if (int !== currentCount + 1) {
+//             try {
+//                 message.author.send({
+//                     content: `That number was not correct! The next number is ${(
+//                         currentCount + 1
+//                     ).toLocaleString('en-US')}.`,
+//                 });
+//             } catch {}
+//             return;
+//         }
+
+//         this.bot.caches.counts.set(message.guild!.id, int);
+
+//         const webhook = new WebhookClient(
+//             {
+//                 id: `${process.env.DISCORD_WEBHOOK_ID}`,
+//                 token: `${process.env.DISCORD_WEBHOOK_TOKEN}`,
+//             }
+//         );
+
+//         webhook.send({
+//             content: `${Math.floor(int).toLocaleString('en-US')}`,
+//             username: message.author.username,
+//             avatarURL: message.author.displayAvatarURL(),
+//         });
+//     }
+// }

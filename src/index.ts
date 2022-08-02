@@ -16,39 +16,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'reflect-metadata';
+
 import * as Dotenv from 'dotenv';
 Dotenv.config();
 
-import { Client } from 'discord.js';
-import Josh from '@joshdb/core'; // @ts-ignore
-import SQLite from '@joshdb/sqlite';
-import { readdirSync } from 'fs';
-import Path from 'path';
+import Bot from './utils/Bot.js';
+import createClient from './utils/client.js';
+import createCommands from './utils/commands.js';
+import createListeners from './utils/listeners.js';
+import readdirp from 'readdirp';
+import { pathToFileURL, fileURLToPath } from 'url';
+import { GatewayIntentBits } from 'discord.js';
+// try now ig
+const client = createClient({
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
+    allowedMentions: {
+        parse: ['users'],
+    },
+});
 
-const dbOptions = {};
+const commands = createCommands();
+const listeners = createListeners();
 
-export default class Bot {
-    client: Client = new Client({
-        intents: ['Guilds', 'GuildMessages', 'MessageContent'],
-        allowedMentions: {
-            parse: ['users'],
-        },
-    });
-    databases = {
-        counts: new Josh({
-            name: 'counts',
-            provider: SQLite,
-            providerOptions: {},
-        }),
-    };
+const commandFiles = readdirp(fileURLToPath(new URL('./commands', import.meta.url)), { fileFilter: '*.js' });
+const listenerFiles = readdirp(fileURLToPath(new URL('./events', import.meta.url)), { fileFilter: '*.js' });
 
-    async init() {
-        for (const file of readdirSync(Path.join(__dirname, 'events'))) {
-            const Handler = require(Path.join(__dirname, 'events', file));
-            const handler = new Handler.default(this);
-            this.client.on(handler.name, handler.handle.bind(handler));
-        }
-
-        this.client.login(process.env.DISCORD_TOKEN);
-    }
-}
+const bot = new Bot(client, commandFiles, listenerFiles);
+await bot.init(commands, listeners);
