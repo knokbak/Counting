@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run prettier && npm run build:typescript",
-    "prettier": "prettier --tab-width 4 --print-width 120 --single-quote --write ./src/**/*",
+    "prettier": "prettier --tab-width 4 --print-width 145 --single-quote --write ./src/**/*",
     "build:typescript": "tsc"
   },
   "repository": {

@@ -60,12 +60,11 @@ export default class Bot {
         }
 
         for await (const dir of this.listenerFiles) {
-            const listener = container.resolve<IListener<any>>(
-                (await import(pathToFileURL(dir.fullPath).href)).default
-            );
+            const listener = container.resolve<IListener<any>>((await import(pathToFileURL(dir.fullPath).href)).default);
             listeners.set(listener.name.toLowerCase(), listener);
 
-            this.client.on(listener.name, (...args) => void listener.execute(args));
+            //this.client.on(listener.name, (...args) => void listener.execute(this, ...args));
+            this.client.on(listener.name, (...args) => void listener.execute(...args));
         }
 
         this.client.login(process.env.DISCORD_TOKEN);

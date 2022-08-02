@@ -26,8 +26,7 @@ export default class MessageCreate implements IListener<typeof Events.MessageCre
     public name: Events.MessageCreate = Events.MessageCreate;
 
     public async execute(message: Message) {
-        if (message.channel.id !== '1003780101214838917') return;
-
+        if (message.channel.id !== '1003780101214838917' || message.author.bot) return;
         if (message.content === '!test') return message.channel.send('hi!');
     }
 }

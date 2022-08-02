@@ -18,13 +18,14 @@
 
 import { injectable } from 'tsyringe';
 import IListener from '../utils/structures/Listener.js';
-import { Message, Events } from 'discord.js';
+import { Events } from 'discord.js';
+import Bot from '../utils/Bot.js';
 
 @injectable()
 export default class MessageCreate implements IListener<typeof Events.ClientReady> {
     public name: Events.ClientReady = Events.ClientReady;
 
-    public async execute(message: Message) {
-        console.log(`Logged in as ${message.client.user?.tag}!`);
+    public async execute() {
+        console.log(`Logged in!`);
     }
 }

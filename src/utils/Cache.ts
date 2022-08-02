@@ -37,9 +37,7 @@ export class Cache<T extends unknown> {
         });
 
         if (checkInterval > maxAge) {
-            throw new Error(
-                'Check interval cannot be greater than max age; this would cause some values to not be saved correctly'
-            );
+            throw new Error('Check interval cannot be greater than max age; this would cause some values to not be saved correctly');
         }
 
         setInterval(() => {
