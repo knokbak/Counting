@@ -26,9 +26,9 @@ export class Cache<T extends unknown> {
     public db: Josh;
     public cache: QuickLRU<string, T>;
     private pendingUpdates: string[] = [];
-    private defaultValue: T | null;
+    private interval: NodeJS.Timer | null = null;
 
-    constructor(bot: Bot, db: Josh, maxSize: number, maxAge: number, checkInterval: number, defaultValue?: T) {
+    constructor(bot: Bot, db: Josh, maxSize: number, maxAge: number, checkInterval: number) {
         this.bot = bot;
         this.db = db;
         this.cache = new QuickLRU<string, T>({
@@ -36,20 +36,12 @@ export class Cache<T extends unknown> {
             maxAge,
             onEviction: (key) => this.removePendingUpdate(key),
         });
-        this.defaultValue = defaultValue ?? null;
 
         if (checkInterval > maxAge) {
             throw new Error('Check interval cannot be greater than max age; this would cause some values to not be saved correctly');
         }
 
-        setInterval(() => {
-            if (this.pendingUpdates.length === 0) return;
-            const updates = this.pendingUpdates;
-            this.pendingUpdates = [];
-
-            const array: [string, unknown][] = updates.map((key) => [key, this.cache.get(key)]);
-            this.db.setMany(array.filter(([, value]) => value !== undefined));
-        }, checkInterval);
+        this.interval = setInterval(this.writeAllPendingUpdates, checkInterval);
     }
 
     public get(key: string, force?: boolean): Awaitable<T | null> {
@@ -57,41 +49,64 @@ export class Cache<T extends unknown> {
         return fromCache && !force ? fromCache : this.db.get(key);
     }
 
-    public async ensure(key: string, value?: T): Promise<T> {
-        if (!value) {
-            value = this.defaultValue ?? undefined;
-        }
-        if (!value) {
-            throw new Error('No default value provided or set on the Cache');
-        }
+    public async ensure(key: string, value: T): Promise<T> {
         // @ts-expect-error - always returns either the database entry or the default value provided
         const out: T = await this.db.ensure(key, value);
         this.cache.set(key, value);
         return out;
     }
 
-    public async set(key: string, value: T): Promise<T> {
+    public async set(key: string, value: T, usePendingUpdates?: boolean): Promise<T> {
         this.cache.set(key, value);
-        await this.db.set(key, value);
-        return value;
-    }
-
-    public evictFromCache(key: string): void {
-        this.cache.delete(key);
-        this.removePendingUpdate(key);
-    }
-
-    public async delete(key: string): Promise<void> {
-        this.cache.delete(key);
-        this.removePendingUpdate(key);
-        await this.db.delete(key);
-        return;
-    }
-
-    public async removePendingUpdate(key: string): Promise<void> {
         if (this.pendingUpdates.includes(key)) {
             this.pendingUpdates.splice(this.pendingUpdates.indexOf(key), 1);
         }
-        return;
+        if (usePendingUpdates) {
+            this.pendingUpdates.push(key);
+        } else {
+            await this.db.set(key, value);
+        }
+        return value;
+    }
+
+    public evictFromCache(key: string): Cache<T> {
+        this.cache.delete(key);
+        this.removePendingUpdate(key);
+        return this;
+    }
+
+    public async delete(key: string): Promise<Cache<T>> {
+        this.cache.delete(key);
+        this.removePendingUpdate(key);
+        await this.db.delete(key);
+        return this;
+    }
+
+    public async removePendingUpdate(key: string): Promise<Cache<T>> {
+        if (this.pendingUpdates.includes(key)) {
+            this.pendingUpdates.splice(this.pendingUpdates.indexOf(key), 1);
+        }
+        return this;
+    }
+
+    public clearAllPendingUpdates(): Cache<T> {
+        this.pendingUpdates = [];
+        return this;
+    }
+
+    public async writeAllPendingUpdates(): Promise<Cache<T>> {
+        if (this.pendingUpdates.length === 0) return this;
+        const updates = this.pendingUpdates;
+        this.pendingUpdates = [];
+
+        const array: [string, unknown][] = updates.map((key) => [key, this.cache.get(key)]);
+        await this.db.setMany(array.filter(([, value]) => value !== undefined));
+        return this;
+    }
+
+    public clearInterval(): Cache<T> {
+        if (this.interval) clearInterval(this.interval);
+        this.interval = null;
+        return this;
     }
 }
