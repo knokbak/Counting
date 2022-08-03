@@ -1,11 +1,15 @@
 In the interest of keeping things open, by contributing to this repository, 
 you agree to the following terms:
 
+- You will still retain any copyright or similar rights you held over your 
+contribution.
+
 - Your grant me ([@knokbak](https://github.com/knokbak)) a perpetual, 
 worldwide, non-exclusive, royalty-free, no-charge, irrevocable, transferable, 
 and sublicensable license to use, modify, and distribute your contribution 
 for any purpose, commercial or non-commercial, with or without attribution, 
-under zero conditions whatsoever.
+under zero conditions whatsoever. This license will apply to any past, 
+current, or future contributions you make or have made to this repository.
 
 - You have read and agree to the terms of the 
 [Developer Certificate of Origin](https://developercertificate.org/).
