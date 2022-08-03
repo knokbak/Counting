@@ -21,9 +21,9 @@ import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
 import ICommand from '../utils/structures/Command';
 
 @injectable()
-export default class Ping implements ICommand {
-    public name = 'ping';
-    public description = "Pings the bot and returns it's latency.";
+export default class Current implements ICommand {
+    public name = 'current';
+    public description = 'Gets the current count.';
     public builder = new SlashCommandBuilder();
 
     constructor() {
@@ -33,8 +33,6 @@ export default class Ping implements ICommand {
     }
 
     public execute(interaction: CommandInteraction) {
-        return interaction.reply({
-            content: 'Pong!',
-        });
+        // TODO: implement this
     }
 }

@@ -21,20 +21,25 @@ import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
 import ICommand from '../utils/structures/Command';
 
 @injectable()
-export default class Ping implements ICommand {
-    public name = 'ping';
-    public description = "Pings the bot and returns it's latency.";
+export default class Set implements ICommand {
+    public name = 'set';
+    public description = 'Sets the current count.';
     public builder = new SlashCommandBuilder();
 
     constructor() {
         this.builder
             .setName(this.name)
-            .setDescription(this.description);
+            .setDescription(this.description)
+            .addIntegerOption(option => 
+                option
+                    .setName('count')
+                    .setDescription('The number the count should be set to.')
+                    .setMinValue(0)
+                    .setRequired(true)
+            );
     }
 
     public execute(interaction: CommandInteraction) {
-        return interaction.reply({
-            content: 'Pong!',
-        });
+        // TODO: implement this
     }
 }

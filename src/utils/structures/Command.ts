@@ -16,12 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Awaitable, CommandInteraction } from 'discord.js';
+import { Awaitable, CommandInteraction, SlashCommandBuilder } from 'discord.js';
 
 export default interface ICommand {
     name: string;
     description: string;
     ownerOnly?: boolean;
+    builder: SlashCommandBuilder;
 
     execute: (interaction: CommandInteraction) => Awaitable<unknown>;
 }

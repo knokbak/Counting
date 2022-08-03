@@ -16,18 +16,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import Bot from '../utils/Bot';
 import { injectable } from 'tsyringe';
 import IListener from '../utils/structures/Listener.js';
 import { Message, Events } from 'discord.js';
+import { GuildConfigDefault } from '../utils/types.js';
 
 @injectable()
 export default class MessageCreate implements IListener<typeof Events.MessageCreate> {
     public name: Events.MessageCreate = Events.MessageCreate;
 
     public async execute(message: Message) {
-        if (message.channel.id !== '1003780101214838917' || message.author.bot) return;
+        if (message.channel.id !== '1003780101214838917' || message.author.bot || !message.guild) return;
         if (message.content === '!test') return message.channel.send('hi!');
+
+        // const guildConfig = this.bot.caches.guildConfigs.get(message.guild.id);
+        const guildConfig = GuildConfigDefault;
     }
 }
 

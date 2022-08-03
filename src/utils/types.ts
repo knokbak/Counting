@@ -16,25 +16,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { injectable } from 'tsyringe';
-import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
-import ICommand from '../utils/structures/Command';
+export type GuildConfig = {
+    id: string;
+    webhook: {
+        id?: string | null;
+        token?: string | null;
+    };
+    allowDoublePost: boolean;
+};
 
-@injectable()
-export default class Ping implements ICommand {
-    public name = 'ping';
-    public description = "Pings the bot and returns it's latency.";
-    public builder = new SlashCommandBuilder();
+export const GuildConfigDefault: GuildConfig = {
+    id: '',
+    webhook: {
+        id: null,
+        token: null,
+    },
+    allowDoublePost: false,
+};
 
-    constructor() {
-        this.builder
-            .setName(this.name)
-            .setDescription(this.description);
-    }
-
-    public execute(interaction: CommandInteraction) {
-        return interaction.reply({
-            content: 'Pong!',
-        });
-    }
-}
+export type CountEntry = {
+    id: string;
+    guild: string;
+    channel: string;
+    count: number;
+};

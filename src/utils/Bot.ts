@@ -16,16 +16,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Client, GatewayIntentBits } from 'discord.js';
+import { Client } from 'discord.js';
 import { Cache } from './Cache.js';
 import { container } from 'tsyringe';
 import IListener from './structures/Listener.js';
 import ICommand from './structures/Command.js';
 import Josh from '@joshdb/core';
-import readdirp from 'readdirp';
+// @ts-expect-error Typings - we'll use this in prod
+import MongoDB from '@joshdb/mongo';
 // @ts-expect-error Typings
 import SQLite from '@joshdb/sqlite';
+import readdirp from 'readdirp';
 import { pathToFileURL } from 'url';
+import { CountEntry, GuildConfig } from './types.js';
 
 const dbOptions = {};
 
@@ -40,9 +43,15 @@ export default class Bot {
             provider: SQLite,
             providerOptions: dbOptions,
         }),
+        guildConfigs: new Josh({
+            name: 'guilds',
+            provider: SQLite,
+            providerOptions: dbOptions,
+        }),
     };
     public caches = {
-        counts: new Cache(this, this.databases.counts, Infinity, 30_000, 10_000),
+        counts: new Cache<CountEntry>(this, this.databases.counts, Infinity, 30_000, 10_000),
+        guildConfigs: new Cache<GuildConfig>(this, this.databases.guildConfigs, Infinity, 30_000, 10_000),
     };
 
     constructor(client: Client, commandFiles: readdirp.ReaddirpStream, listenerFiles: readdirp.ReaddirpStream) {

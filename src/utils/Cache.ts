@@ -26,8 +26,9 @@ export class Cache<T extends unknown> {
     public db: Josh;
     public cache: QuickLRU<string, T>;
     private pendingUpdates: string[] = [];
+    private defaultValue: T | null;
 
-    constructor(bot: Bot, db: Josh, maxSize: number, maxAge: number, checkInterval: number) {
+    constructor(bot: Bot, db: Josh, maxSize: number, maxAge: number, checkInterval: number, defaultValue?: T) {
         this.bot = bot;
         this.db = db;
         this.cache = new QuickLRU<string, T>({
@@ -35,6 +36,7 @@ export class Cache<T extends unknown> {
             maxAge,
             onEviction: (key) => this.removePendingUpdate(key),
         });
+        this.defaultValue = defaultValue ?? null;
 
         if (checkInterval > maxAge) {
             throw new Error('Check interval cannot be greater than max age; this would cause some values to not be saved correctly');
@@ -53,6 +55,19 @@ export class Cache<T extends unknown> {
     public get(key: string, force?: boolean): Awaitable<T | null> {
         const fromCache = this.cache.get(key) ?? null;
         return fromCache && !force ? fromCache : this.db.get(key);
+    }
+
+    public async ensure(key: string, value?: T): Promise<T> {
+        if (!value) {
+            value = this.defaultValue ?? undefined;
+        }
+        if (!value) {
+            throw new Error('No default value provided or set on the Cache');
+        }
+        // @ts-expect-error - always returns either the database entry or the default value provided
+        const out: T = await this.db.ensure(key, value);
+        this.cache.set(key, value);
+        return out;
     }
 
     public async set(key: string, value: T): Promise<T> {

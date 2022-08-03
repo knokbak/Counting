@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import Bot from '../utils/Bot';
 import { injectable, container } from 'tsyringe';
 import IListener from '../utils/structures/Listener.js';
 import ICommand from '../utils/structures/Command.js';
