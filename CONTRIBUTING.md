@@ -1,3 +1,4 @@
+## Rules of contribution
 In the interest of keeping things open, by contributing to this repository, 
 you agree to the following terms:
 
@@ -20,3 +21,9 @@ on an "as is" and "as available" basis, without warranty of any kind, express
 or implied, including, but not limited to, the implied warranties of 
 merchantability or fitness for a particular purpose, unless otherwise agreed 
 between us or in this contribution agreement.
+
+## Why is this important?
+To ensure I can keep the project open, I must receive a license from 
+contributors. This license allows me to publish their contributions under the 
+terms of a license of my choosing (currently, the GNU Affero General Public 
+License). I am unable to accept contributions without such a license.
