@@ -1,0 +1,16 @@
+name: Greetings
+
+on: [pull_request_target, issues]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+    - uses: actions/first-interaction@v1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        issue-message: "Thanks for submitting your first issue! I'll try and get to you when I can. If I don't within 7 days, you can send a Discord DM to olli#2075 in https://discord.gg/sound."
+        pr-message: "Thanks for submitting your first pull request! I'll try and get to you when I can. If I don't within 7 days, you can send a Discord DM to olli#2075 in https://discord.gg/sound."
