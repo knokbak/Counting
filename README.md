@@ -1,5 +1,8 @@
-# WORK IN PROGRESS: DO NOT USE!
-A bot that lets users count with other members in a Discord channel.
+# count+
+I made count+ for [Sound's World](https://discord.gg/sound), which needed a new counting bot. The count+ bot was mainly based on Countr, and is licensed under the GNU Affero General Public License v3.0 (or later).
+
+## Commands and further reading
+More information can be found at [countplus.pages.dev](https://countplus.pages.dev). You cannot invite count+ at this time.
 
 ## Contributing
 Before contributing, please review [CONTRIBUTING.md](https://github.com/knokbak/counting/blob/main/CONTRIBUTING.md) 
