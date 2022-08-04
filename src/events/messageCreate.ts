@@ -25,13 +25,11 @@ export default class MessageCreate extends Listener<typeof Events.MessageCreate>
 
     public async execute(message: Message) {
         if (message.channel.id !== '1003780101214838917' || message.author.bot || !message.guild) return;
-        if (message.content === '!test') return message.channel.send('hi!');
 
         const defConfig = GuildConfigDefault;
         defConfig.id = message.guild.id;
         const guildConfig = await this.bot.caches.guildConfigs.ensure(defConfig.id, defConfig);
-        if (!guildConfig.active || !guildConfig.webhook.id || !guildConfig.webhook.token || guildConfig.channel !== '1003780101214838917')
-            return;
+        if (!guildConfig.active || !guildConfig.webhook.id || !guildConfig.webhook.token || guildConfig.channel) return;
 
         const defCount = CountEntryDefault;
         defCount.guild = message.guild.id;
