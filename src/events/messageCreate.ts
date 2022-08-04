@@ -47,16 +47,14 @@ export default class MessageCreate extends Listener<typeof Events.MessageCreate>
             message.delete();
         }
 
-        console.log(currentCount, nextCount, providedInt);
-
-        /*if (currentCount.lastCounter === message.author.id) {
+        if (currentCount.lastCounter === message.author.id) {
             message.author
                 .send({
                     content: `You have already counted in ${message.channel}! Wait for someone else to count before you count again.`,
                 })
                 .catch(() => {});
             return;
-        }*/
+        }
 
         if (providedInt === nextCount) {
             currentCount.lastCounter = message.author.id;
