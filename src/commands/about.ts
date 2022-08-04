@@ -18,7 +18,15 @@
 
 const { version } = require('../../package.json');
 
-import { ChatInputCommandInteraction, ColorResolvable, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ChatInputCommandInteraction,
+    ColorResolvable,
+    EmbedBuilder,
+    SlashCommandBuilder,
+} from 'discord.js';
 import Bot from '../utils/Bot';
 import { Command } from '../utils/classes/Command';
 import { GuildConfig } from '../utils/types';
@@ -85,8 +93,20 @@ export default class About extends Command {
             .setFooter({
                 text: 'Made with ❤️ by olli#2075 & contributors',
             });
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents([
+            new ButtonBuilder()
+                .setStyle(ButtonStyle.Link)
+                .setLabel('Invite')
+                .setURL(
+                    'https://discord.com/api/oauth2/authorize?client_id=872376168865730570&permissions=537259072&redirect_uri=https%3A%2F%2Fcountplus.pages.dev&response_type=code&scope=identify%20bot%20applications.commands%20applications.commands.permissions.update'
+                )
+                .setDisabled(true),
+            new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel('Website').setURL('https://countplus.pages.dev'),
+            new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel('GitHub').setURL('https://github.com/knokbak/Counting'),
+        ]);
         interaction.reply({
             embeds: [embed],
+            components: [row],
             ephemeral: true,
         });
     }
