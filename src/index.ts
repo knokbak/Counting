@@ -16,18 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'reflect-metadata';
-
-import * as Dotenv from 'dotenv';
+import Dotenv from 'dotenv';
 Dotenv.config();
 
-import Bot from './utils/Bot.js';
-import createClient from './utils/client.js';
-import createCommands from './utils/commands.js';
-import createListeners from './utils/listeners.js';
+import Bot from './utils/Bot';
+import createClient from './utils/client';
 import readdirp from 'readdirp';
-import { fileURLToPath } from 'url';
 import { GatewayIntentBits } from 'discord.js';
+import { join } from 'path';
 
 const client = createClient({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
@@ -36,11 +32,8 @@ const client = createClient({
     },
 });
 
-const commands = createCommands();
-const listeners = createListeners();
-
-const commandFiles = readdirp(fileURLToPath(new URL('./commands', import.meta.url)), { fileFilter: '*.js' });
-const listenerFiles = readdirp(fileURLToPath(new URL('./events', import.meta.url)), { fileFilter: '*.js' });
+const commandFiles = readdirp(join(__dirname + '/commands/'), { fileFilter: '*.js' });
+const listenerFiles = readdirp(join(__dirname + '/events/'), { fileFilter: '*.js' });
 
 const bot = new Bot(client, commandFiles, listenerFiles);
-await bot.init(commands, listeners);
+bot.init();

@@ -16,30 +16,66 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { injectable } from 'tsyringe';
-import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
-import ICommand from '../utils/structures/Command';
+import { ChatInputCommandInteraction, SlashCommandBuilder, WebhookClient } from 'discord.js';
+import Bot from '../utils/Bot';
+import { Command } from '../utils/classes/Command';
+import { CountEntryDefault, GuildConfig } from '../utils/types';
 
-@injectable()
-export default class Set implements ICommand {
+export default class Set extends Command {
     public name = 'set';
     public description = 'Sets the current count.';
     public builder = new SlashCommandBuilder();
 
-    constructor() {
+    constructor(bot: Bot) {
+        super(bot);
         this.builder
             .setName(this.name)
             .setDescription(this.description)
-            .addIntegerOption(option => 
+            .addIntegerOption((option) =>
                 option
                     .setName('count')
                     .setDescription('The number the count should be set to.')
                     .setMinValue(0)
+                    .setMaxValue(100_000_000)
                     .setRequired(true)
             );
     }
 
-    public execute(interaction: CommandInteraction) {
-        // TODO: implement this
+    public async execute(interaction: ChatInputCommandInteraction, guildConfig: GuildConfig) {
+        if (!interaction.member || !interaction.member.permissions) return;
+        if (!interaction.memberPermissions?.has('ManageMessages') && interaction.user.id !== '534479985855954965') {
+            return interaction.reply({
+                content: 'You do not have permission to use this command.',
+                ephemeral: true,
+            });
+        }
+
+        const count = interaction.options.getInteger('count', true);
+        if (count === undefined) return;
+
+        const defCount = CountEntryDefault;
+        defCount.guild = guildConfig.id;
+        const currentCount = await this.bot.caches.counts.ensure(guildConfig.id, defCount);
+
+        currentCount.count = count;
+        await this.bot.caches.counts.set(guildConfig.id, currentCount);
+
+        interaction.reply({
+            content: `The count has been set to ${count.toLocaleString('en-US')}!`,
+            ephemeral: guildConfig.channel === interaction.channelId,
+        });
+
+        if (guildConfig.webhook.id && guildConfig.webhook.token) {
+            const webhook = new WebhookClient({
+                id: guildConfig.webhook.id,
+                token: guildConfig.webhook.token,
+            });
+
+            webhook.send({
+                username: interaction.user.username,
+                avatarURL: interaction.user.displayAvatarURL(),
+                content: `*Set the count to ${count.toLocaleString('en-US')}. The next number is **${(count + 1).toLocaleString('en-US')}**!*`,
+            });
+        }
     }
 }

@@ -16,23 +16,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { injectable, container } from 'tsyringe';
-import IListener from '../utils/structures/Listener.js';
-import ICommand from '../utils/structures/Command.js';
 import { Interaction, Events } from 'discord.js';
+import { Listener } from '../utils/classes/Listener';
+import { GuildConfigDefault } from '../utils/types';
 
-@injectable()
-export default class InteractionCreate implements IListener<typeof Events.InteractionCreate> {
+export default class InteractionCreate extends Listener<typeof Events.InteractionCreate> {
     public name: Events.InteractionCreate = Events.InteractionCreate;
 
     public async execute(interaction: Interaction) {
-        // Check if command is a slash command:
-        if (!interaction.isChatInputCommand()) return;
+        if (!interaction.isChatInputCommand() || !interaction.guild) return;
 
-        // Resolve command and if found, run it:
-        const command = container.resolve<ICommand>(interaction.commandName);
+        const command = this.bot.commands.get(interaction.commandName.toLowerCase());
         if (!command) return;
 
-        return command.execute(interaction);
+        const defConfig = GuildConfigDefault;
+        defConfig.id = interaction.guild.id;
+        const guildConfig = await this.bot.caches.guildConfigs.ensure(defConfig.id, defConfig);
+
+        return command.execute.bind(command)(interaction, guildConfig);
     }
 }

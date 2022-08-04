@@ -16,12 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { injectable } from 'tsyringe';
-import IListener from '../utils/structures/Listener.js';
 import { Events } from 'discord.js';
+import { Listener } from '../utils/classes/Listener';
 
-@injectable()
-export default class MessageCreate implements IListener<typeof Events.ClientReady> {
+export default class ReadyEvent extends Listener<typeof Events.ClientReady> {
     public name: Events.ClientReady = Events.ClientReady;
 
     public async execute() {

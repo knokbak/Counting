@@ -16,5 +16,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export const kCommands = Symbol('Commands');
-export const kListeners = Symbol('Listeners');
+import { Awaitable, ClientEvents } from 'discord.js';
+import Bot from '../Bot';
+
+export abstract class Listener<T extends keyof ClientEvents | symbol> {
+    abstract name: string;
+    once: boolean = false;
+    bot: Bot;
+
+    constructor(bot: Bot) {
+        this.bot = bot;
+    }
+
+    abstract execute(...args: T extends keyof ClientEvents ? ClientEvents[T] : unknown[]): Awaitable<unknown>;
+}

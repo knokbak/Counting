@@ -16,11 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Client } from 'discord.js';
-import { Cache } from './Cache.js';
-import { container } from 'tsyringe';
-import IListener from './structures/Listener.js';
-import ICommand from './structures/Command.js';
+import { Client, REST, Routes } from 'discord.js';
+import { Cache } from './Cache';
 import Josh from '@joshdb/core';
 // @ts-expect-error Typings - we'll use this in prod
 import MongoDB from '@joshdb/mongo';
@@ -28,7 +25,9 @@ import MongoDB from '@joshdb/mongo';
 import SQLite from '@joshdb/sqlite';
 import readdirp from 'readdirp';
 import { pathToFileURL } from 'url';
-import { CountEntry, GuildConfig } from './types.js';
+import { CountEntry, GuildConfig, GuildConfigDefault } from './types';
+import { Command } from './classes/Command';
+import { Listener } from './classes/Listener';
 
 const dbOptions = {};
 
@@ -36,6 +35,8 @@ export default class Bot {
     public client: Client;
     public commandFiles: readdirp.ReaddirpStream;
     public listenerFiles: readdirp.ReaddirpStream;
+    public commands: Map<string, Command> = new Map<string, Command>();
+    public listeners: Map<string, Listener<any>> = new Map<string, Listener<any>>();
 
     public databases = {
         counts: new Josh({
@@ -60,22 +61,38 @@ export default class Bot {
         this.listenerFiles = listenerFiles;
     }
 
-    public async init(commands: Map<string, ICommand>, listeners: Map<string, IListener<any>>) {
-        for await (const dir of this.commandFiles) {
-            const command = container.resolve<ICommand>((await import(pathToFileURL(dir.fullPath).href)).default);
-            commands.set(command.name.toLowerCase(), command);
+    public async init() {
+        if (typeof process.env.DISCORD_TOKEN !== 'string' || typeof process.env.DISCORD_ID !== 'string') {
+            throw new Error('oi give me a token and id');
+        }
 
-            // TODO: Register the slash command
+        for await (const dir of this.commandFiles) {
+            const command: any = (await import(dir.fullPath)).default;
+            this.commands.set(command.name.toLowerCase(), new command(this));
         }
 
         for await (const dir of this.listenerFiles) {
-            const listener = container.resolve<IListener<any>>((await import(pathToFileURL(dir.fullPath).href)).default);
-            listeners.set(listener.name.toLowerCase(), listener);
-
-            //this.client.on(listener.name, (...args) => void listener.execute(this, ...args));
-            this.client.on(listener.name, (...args) => void listener.execute(...args));
+            const listener: Listener<any> = new (await import(dir.fullPath)).default(this);
+            this.listeners.set(listener.name, listener);
+            // @ts-expect-error
+            this.client.on(listener.name, listener.execute.bind(listener));
         }
 
-        this.client.login(process.env.DISCORD_TOKEN);
+        const conf = GuildConfigDefault;
+        conf.active = true;
+        conf.id = '452237221840551938';
+        conf.channel = '1003780101214838917';
+        conf.webhook.id = '1003784053729787976';
+        conf.webhook.token = 'l8RbHnSIgmYgkeUaELoyHW8ETmCFhK2t8fF6MpmOsH8GF2t4-l_2CvBz6zGRVrYMbuzL';
+        await this.caches.guildConfigs.set(conf.id, conf);
+
+        await this.client.login(process.env.DISCORD_TOKEN);
+
+        const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+        await rest.put(Routes.applicationCommands(process.env.DISCORD_ID), { body: [] });
+        await rest.put(Routes.applicationGuildCommands(process.env.DISCORD_ID, '452237221840551938'), {
+            body: [...this.commands.values()].map((c) => c.builder.toJSON()),
+        });
+        console.log(`Registered ${this.commands.size} commands!`);
     }
 }

@@ -16,13 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { container } from 'tsyringe';
-import IListener from './structures/Listener.js';
-import { kListeners } from '../tokens.js';
+import { Awaitable, ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import Bot from '../Bot';
+import { GuildConfig } from '../types';
 
-export default function createListeners() {
-    const listeners = new Map<string, IListener<any>>();
-    container.register(kListeners, { useValue: listeners });
+export abstract class Command {
+    abstract name: string;
+    abstract description: string;
+    ownerOnly: boolean = false;
+    abstract builder: SlashCommandBuilder;
+    bot: Bot;
 
-    return listeners;
+    constructor(bot: Bot) {
+        this.bot = bot;
+    }
+
+    abstract execute(interaction: ChatInputCommandInteraction, guildConfig: GuildConfig): Awaitable<unknown>;
 }

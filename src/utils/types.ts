@@ -18,6 +18,8 @@
 
 export type GuildConfig = {
     id: string;
+    active: boolean;
+    channel: string | null;
     webhook: {
         id?: string | null;
         token?: string | null;
@@ -27,6 +29,8 @@ export type GuildConfig = {
 
 export const GuildConfigDefault: GuildConfig = {
     id: '',
+    active: false,
+    channel: null,
     webhook: {
         id: null,
         token: null,
@@ -35,8 +39,13 @@ export const GuildConfigDefault: GuildConfig = {
 };
 
 export type CountEntry = {
-    id: string;
     guild: string;
-    channel: string;
+    lastCounter: string | null;
     count: number;
+};
+
+export const CountEntryDefault: CountEntry = {
+    guild: '',
+    lastCounter: null,
+    count: 0,
 };

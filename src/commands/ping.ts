@@ -16,25 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { injectable } from 'tsyringe';
-import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
-import ICommand from '../utils/structures/Command';
+import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import Bot from '../utils/Bot';
+import { Command } from '../utils/classes/Command';
+import { GuildConfig } from '../utils/types';
 
-@injectable()
-export default class Ping implements ICommand {
+export default class Ping extends Command {
     public name = 'ping';
     public description = "Pings the bot and returns it's latency.";
     public builder = new SlashCommandBuilder();
 
-    constructor() {
-        this.builder
-            .setName(this.name)
-            .setDescription(this.description);
+    constructor(bot: Bot) {
+        super(bot);
+        this.builder.setName(this.name).setDescription(this.description);
     }
 
-    public execute(interaction: CommandInteraction) {
+    public execute(interaction: ChatInputCommandInteraction, guildConfig: GuildConfig) {
         return interaction.reply({
-            content: 'Pong!',
+            content: `**Pong!** Latency to Discord: ${interaction.client.ws.ping}ms`,
+            ephemeral: true,
         });
     }
 }

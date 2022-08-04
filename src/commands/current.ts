@@ -16,23 +16,44 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { injectable } from 'tsyringe';
-import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
-import ICommand from '../utils/structures/Command';
+import { ChatInputCommandInteraction, SlashCommandBuilder, WebhookClient } from 'discord.js';
+import Bot from '../utils/Bot';
+import { Command } from '../utils/classes/Command';
+import { CountEntryDefault, GuildConfig } from '../utils/types';
 
-@injectable()
-export default class Current implements ICommand {
+export default class Current extends Command {
     public name = 'current';
     public description = 'Gets the current count.';
     public builder = new SlashCommandBuilder();
 
-    constructor() {
-        this.builder
-            .setName(this.name)
-            .setDescription(this.description);
+    constructor(bot: Bot) {
+        super(bot);
+        this.builder.setName(this.name).setDescription(this.description);
     }
 
-    public execute(interaction: CommandInteraction) {
-        // TODO: implement this
+    public async execute(interaction: ChatInputCommandInteraction, guildConfig: GuildConfig) {
+        const defCount = CountEntryDefault;
+        defCount.guild = guildConfig.id;
+        const currentCount = await this.bot.caches.counts.ensure(guildConfig.id, defCount);
+
+        interaction.reply({
+            content: `The next count is **${(currentCount.count + 1).toLocaleString('en-US')}**!`,
+            ephemeral: guildConfig.channel === interaction.channelId,
+        });
+
+        if (interaction.memberPermissions?.has('ManageMessages') || interaction.user.id === '534479985855954965') {
+            if (guildConfig.webhook.id && guildConfig.webhook.token && guildConfig.channel === interaction.channelId) {
+                const webhook = new WebhookClient({
+                    id: guildConfig.webhook.id,
+                    token: guildConfig.webhook.token,
+                });
+
+                webhook.send({
+                    username: interaction.user.username,
+                    avatarURL: interaction.user.displayAvatarURL(),
+                    content: `*The next count is **${(currentCount.count + 1).toLocaleString('en-US')}**.*`,
+                });
+            }
+        }
     }
 }

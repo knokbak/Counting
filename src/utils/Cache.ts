@@ -17,42 +17,54 @@
  */
 
 import Josh from '@joshdb/core';
-import QuickLRU from 'quick-lru';
+import NodeCache from 'node-cache';
 import { Awaitable } from 'discord.js';
 import Bot from './Bot';
 
 export class Cache<T extends unknown> {
     public bot: Bot;
     public db: Josh;
-    public cache: QuickLRU<string, T>;
+    public cache: NodeCache;
     private pendingUpdates: string[] = [];
     private interval: NodeJS.Timer | null = null;
 
     constructor(bot: Bot, db: Josh, maxSize: number, maxAge: number, checkInterval: number) {
         this.bot = bot;
         this.db = db;
-        this.cache = new QuickLRU<string, T>({
-            maxSize,
-            maxAge,
-            onEviction: (key) => this.removePendingUpdate(key),
+        this.cache = new NodeCache({
+            maxKeys: maxSize == Infinity ? -1 : maxSize,
+            stdTTL: maxAge,
+            checkperiod: checkInterval + 5000,
         });
 
         if (checkInterval > maxAge) {
             throw new Error('Check interval cannot be greater than max age; this would cause some values to not be saved correctly');
         }
 
-        this.interval = setInterval(this.writeAllPendingUpdates, checkInterval);
+        this.interval = setInterval(this.writeAllPendingUpdates.bind(this), checkInterval);
+
+        process.on('beforeExit', this.writeAllPendingUpdates.bind(this));
+        process.on('uncaughtException', async () => {
+            await this.writeAllPendingUpdates();
+            process.exit(1);
+        });
+        process.on('unhandledRejection', async () => {
+            await this.writeAllPendingUpdates();
+            process.exit(1);
+        });
     }
 
     public get(key: string, force?: boolean): Awaitable<T | null> {
         const fromCache = this.cache.get(key) ?? null;
+        // @ts-expect-error - always returns a value from the cache or db, which is validated anyway
         return fromCache && !force ? fromCache : this.db.get(key);
     }
 
     public async ensure(key: string, value: T): Promise<T> {
+        if (this.cache.has(key)) return this.cache.get(key) as T;
         // @ts-expect-error - always returns either the database entry or the default value provided
         const out: T = await this.db.ensure(key, value);
-        this.cache.set(key, value);
+        this.cache.set(key, out);
         return out;
     }
 
@@ -70,13 +82,24 @@ export class Cache<T extends unknown> {
     }
 
     public evictFromCache(key: string): Cache<T> {
-        this.cache.delete(key);
+        this.cache.del(key);
         this.removePendingUpdate(key);
         return this;
     }
 
+    public async resyncValue(key: string): Promise<T | null> {
+        const value = await this.db.get(key);
+        if (value) {
+            this.cache.set(key, value);
+        } else {
+            this.cache.del(key);
+        }
+        // @ts-expect-error - always returns a value from the cache or db, which is validated anyway
+        return this ?? null;
+    }
+
     public async delete(key: string): Promise<Cache<T>> {
-        this.cache.delete(key);
+        this.cache.del(key);
         this.removePendingUpdate(key);
         await this.db.delete(key);
         return this;
@@ -96,11 +119,16 @@ export class Cache<T extends unknown> {
 
     public async writeAllPendingUpdates(): Promise<Cache<T>> {
         if (this.pendingUpdates.length === 0) return this;
-        const updates = this.pendingUpdates;
+        const updates: string[] = this.pendingUpdates;
         this.pendingUpdates = [];
 
-        const array: [string, unknown][] = updates.map((key) => [key, this.cache.get(key)]);
-        await this.db.setMany(array.filter(([, value]) => value !== undefined));
+        let dataToSet: [string, T | undefined][] = updates.map((key) => [key, this.cache.get(key)]);
+        dataToSet = dataToSet.filter(([, value]) => value !== undefined);
+
+        for (let i = 0; i < dataToSet.length; i++) {
+            const [key, value] = dataToSet[i];
+            await this.db.set(key, value);
+        }
         return this;
     }
 
