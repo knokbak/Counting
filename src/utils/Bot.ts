@@ -78,14 +78,6 @@ export default class Bot {
             this.client.on(listener.name, listener.execute.bind(listener));
         }
 
-        const conf = GuildConfigDefault;
-        conf.active = true;
-        conf.id = '452237221840551938';
-        conf.channel = '1003780101214838917';
-        conf.webhook.id = '1003784053729787976';
-        conf.webhook.token = 'l8RbHnSIgmYgkeUaELoyHW8ETmCFhK2t8fF6MpmOsH8GF2t4-l_2CvBz6zGRVrYMbuzL';
-        await this.caches.guildConfigs.set(conf.id, conf);
-
         await this.client.login(process.env.DISCORD_TOKEN);
 
         const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
