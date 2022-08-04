@@ -28,6 +28,7 @@ import { pathToFileURL } from 'url';
 import { CountEntry, GuildConfig, GuildConfigDefault } from './types';
 import { Command } from './classes/Command';
 import { Listener } from './classes/Listener';
+import NodeCache from 'node-cache';
 
 const dbOptions = {};
 
@@ -54,6 +55,10 @@ export default class Bot {
         counts: new Cache<CountEntry>(this, this.databases.counts, Infinity, 30_000, 10_000),
         guildConfigs: new Cache<GuildConfig>(this, this.databases.guildConfigs, Infinity, 30_000, 10_000),
     };
+    public limitStores = {
+        webhookFailures: new NodeCache({ stdTTL: 30, checkperiod: 5 }),
+        directMessageFailures: new NodeCache({ stdTTL: 30, checkperiod: 5 }),
+    };
 
     constructor(client: Client, commandFiles: readdirp.ReaddirpStream, listenerFiles: readdirp.ReaddirpStream) {
         this.client = client;
@@ -67,8 +72,8 @@ export default class Bot {
         }
 
         for await (const dir of this.commandFiles) {
-            const command: any = (await import(dir.fullPath)).default;
-            this.commands.set(command.name.toLowerCase(), new command(this));
+            const command: any = new (await import(dir.fullPath)).default(this);
+            this.commands.set(command.name.toLowerCase(), command);
         }
 
         for await (const dir of this.listenerFiles) {
@@ -78,13 +83,20 @@ export default class Bot {
             this.client.on(listener.name, listener.execute.bind(listener));
         }
 
-        await this.client.login(process.env.DISCORD_TOKEN);
+        const token = process.env.DISCORD_TOKEN;
+        await this.client.login(token);
 
-        const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
-        await rest.put(Routes.applicationCommands(process.env.DISCORD_ID), { body: [] });
-        await rest.put(Routes.applicationGuildCommands(process.env.DISCORD_ID, '452237221840551938'), {
-            body: [...this.commands.values()].map((c) => c.builder.toJSON()),
-        });
-        console.log(`Registered ${this.commands.size} commands!`);
+        setTimeout(async () => {
+            if (!this.client.user?.id) return;
+
+            const rest = new REST({ version: '10' }).setToken(token);
+            await rest.put(Routes.applicationCommands(this.client.user.id), {
+                body: [...this.commands.values()].map((c) => c.builder.toJSON()),
+            });
+            /*await rest.put(Routes.applicationGuildCommands(this.client.user.id, 'guild_id'), {
+                body: [],
+            });*/
+            console.log(`Registered ${this.commands.size} commands!`);
+        }, 10_000);
     }
 }

@@ -1,6 +1,18 @@
 # count+
 I made count+ for [Sound's World](https://discord.gg/sound), which needed a new counting bot. The count+ bot was mainly based on Countr, and is licensed under the GNU Affero General Public License v3.0 (or later).
 
+## Building
+Building this bot is quite simple. Just run the `npm install` then `npm run build` commands.
+
+## Envoirement variables
+You must create a `.env` file in the project's root directory with the following contents:
+
+```js
+DISCORD_ID=bot_user_id
+DISCORD_TOKEN=bot_token
+BOT_OWNER_ID=your_discord_account_id
+```
+
 ## Commands and further reading
 More information can be found at [countplus.pages.dev](https://countplus.pages.dev). You cannot invite count+ at this time.
 

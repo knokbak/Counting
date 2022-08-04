@@ -32,7 +32,7 @@ export class Cache<T extends unknown> {
         this.bot = bot;
         this.db = db;
         this.cache = new NodeCache({
-            maxKeys: maxSize == Infinity ? -1 : maxSize,
+            maxKeys: maxSize == Infinity ? -1 : maxSize / 1000,
             stdTTL: maxAge,
             checkperiod: checkInterval + 5000,
         });

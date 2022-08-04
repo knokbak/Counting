@@ -20,6 +20,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder, WebhookClient } from 
 import Bot from '../utils/Bot';
 import { Command } from '../utils/classes/Command';
 import { CountEntryDefault, GuildConfig } from '../utils/types';
+import { sendToWebhook } from '../utils/commonHandlers';
 
 export default class Set extends Command {
     public name = 'set';
@@ -43,15 +44,15 @@ export default class Set extends Command {
 
     public async execute(interaction: ChatInputCommandInteraction, guildConfig: GuildConfig) {
         if (!interaction.member || !interaction.member.permissions) return;
-        if (!interaction.memberPermissions?.has('ManageMessages') && interaction.user.id !== '534479985855954965') {
+        if (!interaction.memberPermissions?.has('ManageMessages') && interaction.user.id !== process.env.BOT_OWNER_ID) {
             return interaction.reply({
                 content: 'You do not have permission to use this command.',
                 ephemeral: true,
             });
         }
 
-        const count = interaction.options.getInteger('count', true);
-        if (count === undefined) return;
+        const count = Math.floor(interaction.options.getInteger('count', true));
+        if (count < 0 || count > 100_000_000) return;
 
         const defCount = CountEntryDefault;
         defCount.guild = guildConfig.id;
@@ -66,15 +67,10 @@ export default class Set extends Command {
         });
 
         if (guildConfig.webhook.id && guildConfig.webhook.token) {
-            const webhook = new WebhookClient({
-                id: guildConfig.webhook.id,
-                token: guildConfig.webhook.token,
-            });
-
-            webhook.send({
+            sendToWebhook(this.bot, guildConfig.webhook.id, guildConfig.webhook.token, {
                 username: interaction.user.username,
                 avatarURL: interaction.user.displayAvatarURL(),
-                content: `*Set the count to ${count.toLocaleString('en-US')}. The next number is **${(count + 1).toLocaleString('en-US')}**!*`,
+                content: `*The next number is **${(count + 1).toLocaleString('en-US')}**!*`,
             });
         }
     }

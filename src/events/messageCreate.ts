@@ -19,62 +19,61 @@
 import { Message, Events, WebhookClient } from 'discord.js';
 import { CountEntryDefault, GuildConfigDefault } from '../utils/types';
 import { Listener } from '../utils/classes/Listener';
+import { sendToWebhook, sendViaDirectMessages } from '../utils/commonHandlers';
 
 export default class MessageCreate extends Listener<typeof Events.MessageCreate> {
     public name: Events.MessageCreate = Events.MessageCreate;
 
     public async execute(message: Message) {
-        if (message.channel.id !== '1003780101214838917' || message.author.bot || !message.guild) return;
+        try {
+            if (message.channel.id !== '1003780101214838917' || message.author.bot || !message.guild) return;
 
-        const defConfig = GuildConfigDefault;
-        defConfig.id = message.guild.id;
-        const guildConfig = await this.bot.caches.guildConfigs.ensure(defConfig.id, defConfig);
-        if (!guildConfig.active || !guildConfig.webhook.id || !guildConfig.webhook.token || guildConfig.channel) return;
+            const defConfig = GuildConfigDefault;
+            defConfig.id = message.guild.id;
+            const guildConfig = await this.bot.caches.guildConfigs.ensure(defConfig.id, defConfig);
+            if (!guildConfig.active || !guildConfig.webhook.id || !guildConfig.webhook.token || !guildConfig.channel) return;
 
-        const defCount = CountEntryDefault;
-        defCount.guild = message.guild.id;
-        const currentCount = await this.bot.caches.counts.ensure(message.guild.id, defCount);
-        const nextCount = currentCount.count + 1;
-        const providedInt = Number.parseInt(`${message.content}`.replace(/[^0-9]/g, ''));
+            const defCount = CountEntryDefault;
+            defCount.guild = message.guild.id;
+            const currentCount = await this.bot.caches.counts.ensure(message.guild.id, defCount);
+            const nextCount = currentCount.count + 1;
+            const providedInt = Number.parseInt(`${message.content}`.replace(/[^0-9]/g, ''));
 
-        if (Number.isNaN(providedInt) && (message.member?.permissions.has('ManageMessages') || message.author.id === '534479985855954965')) {
-            return;
-        }
+            if (
+                Number.isNaN(providedInt) &&
+                (message.member?.permissions.has('ManageMessages') || message.author.id === process.env.BOT_OWNER_ID)
+            ) {
+                return;
+            }
 
-        if (message.deletable) {
-            message.delete();
-        }
+            if (message.deletable) {
+                message.delete().catch(console.error);
+            }
 
-        if (currentCount.lastCounter === message.author.id) {
-            message.author
-                .send({
+            if (currentCount.lastCounter === message.author.id) {
+                await sendViaDirectMessages(this.bot, message.author, {
                     content: `You have already counted in ${message.channel}! Wait for someone else to count before you count again.`,
-                })
-                .catch(() => {});
-            return;
-        }
+                });
+                return;
+            }
 
-        if (providedInt === nextCount) {
-            currentCount.lastCounter = message.author.id;
-            currentCount.count = nextCount;
-            await this.bot.caches.counts.set(message.guild.id, currentCount, true);
+            if (providedInt === nextCount) {
+                currentCount.lastCounter = message.author.id;
+                currentCount.count = nextCount;
+                await this.bot.caches.counts.set(message.guild.id, currentCount, true);
 
-            const webhook = new WebhookClient({
-                id: guildConfig.webhook.id,
-                token: guildConfig.webhook.token,
-            });
-
-            webhook.send({
-                username: message.author.username,
-                avatarURL: message.author.displayAvatarURL(),
-                content: nextCount.toLocaleString('en-US'),
-            });
-        } else {
-            message.author
-                .send({
+                await sendToWebhook(this.bot, guildConfig.webhook.id, guildConfig.webhook.token, {
+                    username: message.author.username,
+                    avatarURL: message.author.displayAvatarURL(),
+                    content: providedInt.toLocaleString('en-US'),
+                });
+            } else {
+                await sendViaDirectMessages(this.bot, message.author, {
                     content: `That was not the correct number! The next count is **${nextCount.toLocaleString('en-US')}**.`,
-                })
-                .catch(() => {});
+                });
+            }
+        } catch (err) {
+            console.error(err);
         }
     }
 }

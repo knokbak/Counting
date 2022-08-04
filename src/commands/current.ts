@@ -20,6 +20,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder, WebhookClient } from 
 import Bot from '../utils/Bot';
 import { Command } from '../utils/classes/Command';
 import { CountEntryDefault, GuildConfig } from '../utils/types';
+import { sendToWebhook } from '../utils/commonHandlers';
 
 export default class Current extends Command {
     public name = 'current';
@@ -41,14 +42,9 @@ export default class Current extends Command {
             ephemeral: guildConfig.channel === interaction.channelId,
         });
 
-        if (interaction.memberPermissions?.has('ManageMessages') || interaction.user.id === '534479985855954965') {
+        if (interaction.memberPermissions?.has('ManageMessages') || interaction.user.id === process.env.BOT_OWNER_ID) {
             if (guildConfig.webhook.id && guildConfig.webhook.token && guildConfig.channel === interaction.channelId) {
-                const webhook = new WebhookClient({
-                    id: guildConfig.webhook.id,
-                    token: guildConfig.webhook.token,
-                });
-
-                webhook.send({
+                sendToWebhook(this.bot, guildConfig.webhook.id, guildConfig.webhook.token, {
                     username: interaction.user.username,
                     avatarURL: interaction.user.displayAvatarURL(),
                     content: `*The next count is **${(currentCount.count + 1).toLocaleString('en-US')}**.*`,

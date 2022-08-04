@@ -24,15 +24,19 @@ export default class InteractionCreate extends Listener<typeof Events.Interactio
     public name: Events.InteractionCreate = Events.InteractionCreate;
 
     public async execute(interaction: Interaction) {
-        if (!interaction.isChatInputCommand() || !interaction.guild) return;
+        try {
+            if (!interaction.isChatInputCommand() || !interaction.guild) return;
 
-        const command = this.bot.commands.get(interaction.commandName.toLowerCase());
-        if (!command) return;
+            const command = this.bot.commands.get(interaction.commandName.toLowerCase());
+            if (!command) return console.warn(`Command ${interaction.commandName} not found`);
 
-        const defConfig = GuildConfigDefault;
-        defConfig.id = interaction.guild.id;
-        const guildConfig = await this.bot.caches.guildConfigs.ensure(defConfig.id, defConfig);
+            const defConfig = GuildConfigDefault;
+            defConfig.id = interaction.guild.id;
+            const guildConfig = await this.bot.caches.guildConfigs.ensure(defConfig.id, defConfig);
 
-        return command.execute.bind(command)(interaction, guildConfig);
+            return await command.execute.bind(command)(interaction, guildConfig);
+        } catch (err) {
+            console.error(err);
+        }
     }
 }
