@@ -1,4 +1,4 @@
-# counting
+# WORK IN PROGRESS: DO NOT USE!
 A bot that lets users count with other members in a Discord channel.
 
 ## Contributing
