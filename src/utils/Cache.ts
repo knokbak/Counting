@@ -44,11 +44,13 @@ export class Cache<T extends unknown> {
         this.interval = setInterval(this.writeAllPendingUpdates.bind(this), checkInterval);
 
         process.on('beforeExit', this.writeAllPendingUpdates.bind(this));
-        process.on('uncaughtException', async () => {
+        process.on('uncaughtException', async (err) => {
+            console.error(err);
             await this.writeAllPendingUpdates();
             process.exit(1);
         });
-        process.on('unhandledRejection', async () => {
+        process.on('unhandledRejection', async (err) => {
+            console.error(err);
             await this.writeAllPendingUpdates();
             process.exit(1);
         });
