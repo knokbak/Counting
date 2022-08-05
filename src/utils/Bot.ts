@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Client, REST, Routes } from 'discord.js';
+import { ActivitiesOptions, ActivityType, Client, REST, Routes } from 'discord.js';
 import { Cache } from './Cache';
 import Josh from '@joshdb/core';
 // @ts-expect-error Typings - we'll use this in prod
@@ -37,6 +37,26 @@ export default class Bot {
     public listenerFiles: readdirp.ReaddirpStream;
     public commands: Map<string, Command> = new Map<string, Command>();
     public listeners: Map<string, Listener<any>> = new Map<string, Listener<any>>();
+
+    private currentStatus = 0;
+    private readonly statuses: ActivitiesOptions[] = [
+        {
+            name: 'github.com/knokbak/counting',
+            type: ActivityType.Watching,
+        },
+        {
+            name: '/about',
+            type: ActivityType.Listening,
+        },
+        {
+            name: "I'm on GitHub!",
+            type: ActivityType.Playing,
+        },
+        {
+            name: 'the GNU AGPLv3.0',
+            type: ActivityType.Listening,
+        },
+    ];
 
     private readonly dbOptions = {
         dbName: 'countplus',
@@ -105,6 +125,7 @@ export default class Bot {
 
         const token = process.env.DISCORD_TOKEN;
         await this.client.login(token);
+        this.rotatePresence();
 
         setTimeout(async () => {
             if (!this.client.user?.id) return;
@@ -118,5 +139,19 @@ export default class Bot {
             });*/
             console.log(`Registered ${this.commands.size} commands!`);
         }, 10_000);
+
+        setInterval(() => this.rotatePresence(), 15_000);
+    }
+
+    public rotatePresence() {
+        try {
+            this.client.user!.setPresence({
+                activities: [this.statuses[this.currentStatus]],
+                status: 'idle',
+            });
+            this.currentStatus = (this.currentStatus + 1) % this.statuses.length;
+        } catch (err) {
+            console.warn(err);
+        }
     }
 }
