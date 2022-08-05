@@ -31,6 +31,7 @@ export default class SetChannel extends Command {
         super(bot);
         this.builder
             .setName(this.name)
+            .setDMPermission(false)
             .setDescription(this.description)
             .addChannelOption((option) => option.setName('channel').setDescription('The channel to use for counting.').setRequired(true));
     }

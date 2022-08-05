@@ -31,6 +31,7 @@ export default class Set extends Command {
         super(bot);
         this.builder
             .setName(this.name)
+            .setDMPermission(false)
             .setDescription(this.description)
             .addIntegerOption((option) =>
                 option

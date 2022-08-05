@@ -29,7 +29,7 @@ export default class Current extends Command {
 
     constructor(bot: Bot) {
         super(bot);
-        this.builder.setName(this.name).setDescription(this.description);
+        this.builder.setName(this.name).setDMPermission(false).setDescription(this.description);
     }
 
     public async execute(interaction: ChatInputCommandInteraction, guildConfig: GuildConfig) {

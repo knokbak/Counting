@@ -28,7 +28,7 @@ export default class Ping extends Command {
 
     constructor(bot: Bot) {
         super(bot);
-        this.builder.setName(this.name).setDescription(this.description);
+        this.builder.setName(this.name).setDMPermission(true).setDescription(this.description);
     }
 
     public execute(interaction: ChatInputCommandInteraction, guildConfig: GuildConfig) {

@@ -29,6 +29,7 @@ import { CountEntry, GuildConfig, GuildConfigDefault } from './types';
 import { Command } from './classes/Command';
 import { Listener } from './classes/Listener';
 import NodeCache from 'node-cache';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
 
 const dbOptions = {};
 
@@ -58,6 +59,16 @@ export default class Bot {
     public limitStores = {
         webhookFailures: new NodeCache({ stdTTL: 30, checkperiod: 5 }),
         directMessageFailures: new NodeCache({ stdTTL: 30, checkperiod: 5 }),
+    };
+    public rateLimiters = {
+        // Limits a user from having multiple messages recognized in short succession
+        message: new RateLimiterMemory({ points: 1, duration: 1 }),
+        // Limits a user from spamming commands - the limit increases if another command is tried before the cooldown is over
+        command: new RateLimiterMemory({ points: 1, duration: 5, blockDuration: 3 }),
+        // Prevents a single guild from attempting to overload the bot using messages in their counting channel
+        guildMessages: new RateLimiterMemory({ points: 35, duration: 5, blockDuration: 10 }),
+        // Prevents a single guild from attempting to overload the bot using commands
+        guildCommands: new RateLimiterMemory({ points: 10, duration: 5, blockDuration: 5 }),
     };
 
     constructor(client: Client, commandFiles: readdirp.ReaddirpStream, listenerFiles: readdirp.ReaddirpStream) {

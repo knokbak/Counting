@@ -26,7 +26,7 @@ import { GatewayIntentBits } from 'discord.js';
 import { join } from 'path';
 
 const client = createClient({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.DirectMessages],
     allowedMentions: {
         parse: ['users'],
     },

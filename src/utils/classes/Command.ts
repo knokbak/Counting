@@ -31,5 +31,5 @@ export abstract class Command {
         this.bot = bot;
     }
 
-    abstract execute(interaction: ChatInputCommandInteraction, guildConfig: GuildConfig): Awaitable<unknown>;
+    abstract execute(interaction: ChatInputCommandInteraction, guildConfig: GuildConfig | null): Awaitable<unknown>;
 }
