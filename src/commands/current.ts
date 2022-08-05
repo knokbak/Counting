@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ChatInputCommandInteraction, SlashCommandBuilder, WebhookClient } from 'discord.js';
+import { ChatInputCommandInteraction, GuildMember, SlashCommandBuilder } from 'discord.js';
 import Bot from '../utils/Bot';
 import { Command } from '../utils/classes/Command';
 import { CountEntryDefault, GuildConfig } from '../utils/types';
@@ -45,7 +45,7 @@ export default class Current extends Command {
         if (interaction.memberPermissions?.has('ManageMessages') || interaction.user.id === process.env.BOT_OWNER_ID) {
             if (guildConfig.webhook.id && guildConfig.webhook.token && guildConfig.channel === interaction.channelId) {
                 sendToWebhook(this.bot, guildConfig.webhook.id, guildConfig.webhook.token, {
-                    username: interaction.user.username,
+                    username: interaction.member instanceof GuildMember ? interaction.member.displayName : interaction.user.username,
                     avatarURL: interaction.user.displayAvatarURL(),
                     content: `*The next count is **${(currentCount.count + 1).toLocaleString('en-US')}**.*`,
                 });

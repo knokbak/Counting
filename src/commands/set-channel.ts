@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ChannelType, ChatInputCommandInteraction, SlashCommandBuilder, TextChannel, PermissionsBitField } from 'discord.js';
+import { ChannelType, ChatInputCommandInteraction, SlashCommandBuilder, TextChannel, GuildMember } from 'discord.js';
 import Bot from '../utils/Bot';
 import { Command } from '../utils/classes/Command';
 import { sendToWebhook } from '../utils/commonHandlers';
@@ -102,7 +102,7 @@ export default class SetChannel extends Command {
         await this.bot.caches.guildConfigs.set(interaction.guildId!, guildConfig);
 
         await sendToWebhook(this.bot, guildConfig.webhook.id, guildConfig.webhook.token, {
-            username: interaction.user.username,
+            username: interaction.member instanceof GuildMember ? interaction.member.displayName : interaction.user.username,
             avatarURL: interaction.user.displayAvatarURL(),
             content: `*Created a webhook and set ${channel} as the channel to use for counting.*`,
         });

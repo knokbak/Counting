@@ -93,7 +93,7 @@ export default class MessageCreate extends Listener<typeof Events.MessageCreate>
             const providedInt = Number.parseInt(`${message.content}`.replace(/[^0-9]/g, ''));
 
             if (
-                (Number.isNaN(providedInt) || providedInt !== nextCount) &&
+                (Number.isNaN(providedInt) || (providedInt !== nextCount && Number.isNaN(parseInt(message.content)))) &&
                 (message.member!.permissions.has('ManageMessages') ||
                     channel.permissionsFor(message.author)!.has('ManageMessages') ||
                     message.author.id === process.env.BOT_OWNER_ID)
@@ -131,7 +131,7 @@ export default class MessageCreate extends Listener<typeof Events.MessageCreate>
                                     await this.bot.caches.counts.set(message.guild!.id, currentCount, true);
 
                                     await sendToWebhook(this.bot, guildConfig.webhook.id!, guildConfig.webhook.token!, {
-                                        username: message.author.username,
+                                        username: message.member!.displayName,
                                         avatarURL: message.author.displayAvatarURL(),
                                         content: providedInt.toLocaleString('en-US'),
                                     });
