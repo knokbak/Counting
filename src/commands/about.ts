@@ -98,7 +98,7 @@ export default class About extends Command {
                 .setStyle(ButtonStyle.Link)
                 .setLabel('Invite')
                 .setURL(
-                    'https://discord.com/api/oauth2/authorize?client_id=872376168865730570&permissions=537259072&redirect_uri=https%3A%2F%2Fcountplus.pages.dev&response_type=code&scope=identify%20bot%20applications.commands%20applications.commands.permissions.update'
+                    'https://discord.com/api/oauth2/authorize?client_id=872376168865730570&permissions=0&redirect_uri=https%3A%2F%2Fcountplus.pages.dev&response_type=code&scope=identify%20bot%20applications.commands%20applications.commands.permissions.update'
                 )
                 .setDisabled(true),
             new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel('Website').setURL('https://countplus.pages.dev'),

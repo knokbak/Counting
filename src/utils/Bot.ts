@@ -87,7 +87,7 @@ export default class Bot {
     };
     public limitStores = {
         webhookFailures: new NodeCache({ stdTTL: 30, checkperiod: 5 }),
-        directMessageFailures: new NodeCache({ stdTTL: 30, checkperiod: 5 }),
+        directMessageFailures: new NodeCache({ stdTTL: 60, checkperiod: 5 }),
     };
     public rateLimiters = {
         // Limits a user from having multiple messages recognized in short succession
