@@ -32,7 +32,14 @@ export function sendToWebhook(bot: Bot, id: string, token: string, options: Mess
             return;
         }
 
-        const webhook = new WebhookClient({ id, token });
+        const webhook = new WebhookClient(
+            { id, token },
+            {
+                allowedMentions: {
+                    parse: ['users'],
+                },
+            }
+        );
         webhook
             .send(options)
             .then(resolve)

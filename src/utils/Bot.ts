@@ -95,7 +95,7 @@ export default class Bot {
         // Limits a user from spamming commands - the limit increases if another command is tried before the cooldown is over
         command: new RateLimiterMemory({ points: 1, duration: 5, blockDuration: 3 }),
         // Prevents a single guild from attempting to overload the bot using messages in their counting channel
-        guildMessages: new RateLimiterMemory({ points: 35, duration: 5, blockDuration: 10 }),
+        guildMessages: new RateLimiterMemory({ points: 50, duration: 5, blockDuration: 10 }),
         // Prevents a single guild from attempting to overload the bot using commands
         guildCommands: new RateLimiterMemory({ points: 10, duration: 5, blockDuration: 5 }),
     };
