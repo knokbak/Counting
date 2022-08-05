@@ -21,8 +21,8 @@ import { Cache } from './Cache';
 import Josh from '@joshdb/core';
 // @ts-expect-error Typings - we'll use this in prod
 import MongoDB from '@joshdb/mongo';
-// @ts-expect-error Typings
-import SQLite from '@joshdb/sqlite';
+/*// @ts-expect-error Typings
+import SQLite from '@joshdb/sqlite';*/
 import readdirp from 'readdirp';
 import { pathToFileURL } from 'url';
 import { CountEntry, GuildConfig, GuildConfigDefault } from './types';
@@ -31,8 +31,6 @@ import { Listener } from './classes/Listener';
 import NodeCache from 'node-cache';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 
-const dbOptions = {};
-
 export default class Bot {
     public client: Client;
     public commandFiles: readdirp.ReaddirpStream;
@@ -40,16 +38,27 @@ export default class Bot {
     public commands: Map<string, Command> = new Map<string, Command>();
     public listeners: Map<string, Listener<any>> = new Map<string, Listener<any>>();
 
+    private readonly dbOptions = {
+        dbName: 'countplus',
+        url: process.env.MONGO_CONNECTION_URI as string,
+    };
+
     public databases = {
         counts: new Josh({
             name: 'counts',
-            provider: SQLite,
-            providerOptions: dbOptions,
+            provider: MongoDB,
+            providerOptions: {
+                ...this.dbOptions,
+                collection: 'counts',
+            },
         }),
         guildConfigs: new Josh({
             name: 'guilds',
-            provider: SQLite,
-            providerOptions: dbOptions,
+            provider: MongoDB,
+            providerOptions: {
+                ...this.dbOptions,
+                collection: 'guild-configs',
+            },
         }),
     };
     public caches = {
