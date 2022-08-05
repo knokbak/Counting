@@ -28,7 +28,7 @@ export default class Help extends Command {
 
     constructor(bot: Bot) {
         super(bot);
-        this.builder.setName(this.name).setDMPermission(true).setDescription(this.description);
+        this.builder.setName(this.name).setDMPermission(false).setDescription(this.description);
     }
 
     public execute(interaction: ChatInputCommandInteraction, guildConfig: GuildConfig) {
