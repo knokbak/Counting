@@ -10,6 +10,7 @@ You must create a `.env` file in the project's root directory with the following
 ```js
 DISCORD_ID=bot_user_id
 DISCORD_TOKEN=bot_token
+MONGO_CONNECTION_URI=full_connection_url_for_mongodb
 BOT_OWNER_ID=your_discord_account_id
 ```
 
