@@ -93,8 +93,10 @@ export default class MessageCreate extends Listener<typeof Events.MessageCreate>
             const providedInt = Number.parseInt(`${message.content}`.replace(/[^0-9]/g, ''));
 
             if (
-                Number.isNaN(providedInt) &&
-                (message.member?.permissions.has('ManageMessages') || message.author.id === process.env.BOT_OWNER_ID)
+                (Number.isNaN(providedInt) || providedInt !== nextCount) &&
+                (message.member!.permissions.has('ManageMessages') ||
+                    channel.permissionsFor(message.author)!.has('ManageMessages') ||
+                    message.author.id === process.env.BOT_OWNER_ID)
             ) {
                 return;
             }
