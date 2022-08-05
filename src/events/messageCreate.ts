@@ -135,6 +135,24 @@ export default class MessageCreate extends Listener<typeof Events.MessageCreate>
                                         avatarURL: message.author.displayAvatarURL(),
                                         content: providedInt.toLocaleString('en-US'),
                                     });
+
+                                    if (providedInt % 1_000_000 === 0) {
+                                        const estSeconds = providedInt * 3;
+                                        const estDays = Math.floor(estSeconds / 86400);
+                                        let ggMessage: Message = null!;
+                                        if (providedInt === 1_000_000) {
+                                            ggMessage = await message.channel.send({
+                                                content: `*We've counted to **1 million**! That means everyone's collectively spent around ${estDays} days counting! That's insane. GG!*`,
+                                            });
+                                        } else {
+                                            ggMessage = await message.channel.send({
+                                                content: `*We've counted to another million! That means everyone's collectively spent around ${estDays} days counting! That's insane. GG!*`,
+                                            });
+                                        }
+                                        if (myPermissions.includes('AddReactions')) {
+                                            await ggMessage.react('🎉');
+                                        }
+                                    }
                                 } else {
                                     await sendViaDirectMessages(this.bot, message.author, {
                                         content: `That was not the correct number! The next count is **${nextCount.toLocaleString('en-US')}**.`,

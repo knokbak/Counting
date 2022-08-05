@@ -15,7 +15,7 @@ BOT_OWNER_ID=your_discord_account_id
 ```
 
 ## Commands and further reading
-More information can be found at [countplus.pages.dev](https://countplus.pages.dev). You cannot invite count+ at this time.
+More information can be found at [countplus.pages.dev](https://countplus.pages.dev). You can [invite count+ to your Discord server here](https://discord.com/api/oauth2/authorize?client_id=872376168865730570&permissions=0&redirect_uri=https%3A%2F%2Fcountplus.pages.dev&response_type=code&scope=identify%20bot%20applications.commands%20applications.commands.permissions.update)!
 
 ## Contributing
 Before contributing, please review [CONTRIBUTING.md](https://github.com/knokbak/counting/blob/main/CONTRIBUTING.md) 
