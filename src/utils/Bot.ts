@@ -24,8 +24,7 @@ import MongoDB from '@joshdb/mongo';
 /*// @ts-expect-error Typings
 import SQLite from '@joshdb/sqlite';*/
 import readdirp from 'readdirp';
-import { pathToFileURL } from 'url';
-import { CountEntry, GuildConfig, GuildConfigDefault } from './types';
+import { CountEntry, GuildConfig } from './types';
 import { Command } from './classes/Command';
 import { Listener } from './classes/Listener';
 import NodeCache from 'node-cache';
@@ -134,9 +133,6 @@ export default class Bot {
             await rest.put(Routes.applicationCommands(this.client.user.id), {
                 body: [...this.commands.values()].map((c) => c.builder.toJSON()),
             });
-            /*await rest.put(Routes.applicationGuildCommands(this.client.user.id, 'guild_id'), {
-                body: [],
-            });*/
             console.log(`Registered ${this.commands.size} commands!`);
         }, 10_000);
 
