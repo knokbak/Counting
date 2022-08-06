@@ -1,4 +1,11 @@
 .github/
+dist/
+.idea/
+.vscode/
+node_modules/
 .gitignore
+SECURITY.md
+CONTRIBUTING.md
 CODEOWNERS
 LICENSE
+.env
