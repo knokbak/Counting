@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/knokbak/counting#readme",
   "dependencies": {
-    "@discordjs/rest": "^1.0.1",
+    "@discordjs/rest": "^1.1.0",
     "@joshdb/core": "^1.2.7",
     "@joshdb/mongo": "^1.1.6",
     "discord.js": "^14.2.0",
