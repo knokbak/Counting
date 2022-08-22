@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ActivitiesOptions, ActivityType, Client, REST, Routes } from 'discord.js';
+import { ActivitiesOptions, ActivityType, Client, Guild, REST, Routes } from 'discord.js';
 import { Cache } from './Cache';
 import Josh from '@joshdb/core';
 // @ts-expect-error Typings - we'll use this in prod
@@ -24,10 +24,11 @@ import MongoDB from '@joshdb/mongo';
 /*// @ts-expect-error Typings
 import SQLite from '@joshdb/sqlite';*/
 import readdirp from 'readdirp';
-import { CountEntry, GuildConfig } from './types';
+import { CountEntry, GuildConfig, GuildRule } from './types';
 import { Command } from './classes/Command';
 import { Listener } from './classes/Listener';
 import NodeCache from 'node-cache';
+import { GuildConfigDefault } from './types';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 
 export default class Bot {
@@ -63,7 +64,7 @@ export default class Bot {
     };
 
     public databases = {
-        counts: new Josh({
+        counts: new Josh<CountEntry | null>({
             name: 'counts',
             provider: MongoDB,
             providerOptions: {
@@ -71,12 +72,20 @@ export default class Bot {
                 collection: 'counts',
             },
         }),
-        guildConfigs: new Josh({
+        guildConfigs: new Josh<GuildConfig | null>({
             name: 'guilds',
             provider: MongoDB,
             providerOptions: {
                 ...this.dbOptions,
                 collection: 'guild-configs',
+            },
+        }),
+        rules: new Josh<GuildRule | null>({
+            name: 'guild-rules',
+            provider: MongoDB,
+            providerOptions: {
+                ...this.dbOptions,
+                collection: 'guild-rules',
             },
         }),
     };
@@ -149,5 +158,24 @@ export default class Bot {
         } catch (err) {
             console.warn(err);
         }
+    }
+
+    public async getGuildConfig(guild: string | Guild): Promise<GuildConfig> {
+        if (typeof guild === 'string') {
+            guild = await this.client.guilds.fetch(guild);
+        }
+        if (!guild || !guild.id) {
+            throw new Error('Guild not available');
+        }
+        const defaultConfig = GuildConfigDefault;
+        defaultConfig.id = guild.id;
+        const guildConfig = await this.caches.guildConfigs.ensure(guild.id, defaultConfig);
+        for (const key in defaultConfig) {
+            if (!(key in guildConfig)) {
+                // @ts-expect-error
+                guildConfig[key] = defaultConfig[key];
+            }
+        }
+        return guildConfig;
     }
 }

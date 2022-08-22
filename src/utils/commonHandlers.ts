@@ -77,3 +77,11 @@ export function sendViaDirectMessages(bot: Bot, user: User | GuildMember, option
             });
     });
 }
+
+export async function waitFor<T = unknown>(fn: Promise<any>): Promise<[T | null, any | null]> {
+    try {
+        return [await fn, null];
+    } catch (err: any) {
+        return [null, err ?? null];
+    }
+}
