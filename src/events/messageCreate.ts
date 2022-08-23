@@ -16,10 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Message, Events, ChannelType, TextChannel } from 'discord.js';
-import { CountEntryDefault, GuildConfigDefault } from '../utils/types';
+import { Message, Events, ChannelType, TextChannel, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { CountEntryDefault, GuildConfig, GuildRule } from '../utils/types';
 import { Listener } from '../utils/classes/Listener';
-import { sendToWebhook, sendViaDirectMessages } from '../utils/commonHandlers';
+import { sendToWebhook, sendViaDirectMessages, waitFor, parseJoshFilterResponse } from '../utils/commonHandlers';
 import { RateLimiterRes } from 'rate-limiter-flexible';
 
 export default class MessageCreate extends Listener<typeof Events.MessageCreate> {
@@ -61,12 +61,10 @@ export default class MessageCreate extends Listener<typeof Events.MessageCreate>
 
             if (message.author.bot || !message.guild || message.channel.type !== ChannelType.GuildText) return;
             const channel = message.channel as unknown as TextChannel;
-
-            const defConfig = GuildConfigDefault;
-            defConfig.id = message.guild.id;
-            const guildConfig = await this.bot.caches.guildConfigs.ensure(defConfig.id, defConfig);
+            const [guildConfig] = await waitFor<GuildConfig>(this.bot.getGuildConfig(message.guild));
 
             if (
+                !guildConfig ||
                 !guildConfig.active ||
                 !guildConfig.webhook.id ||
                 !guildConfig.webhook.token ||
@@ -79,9 +77,16 @@ export default class MessageCreate extends Listener<typeof Events.MessageCreate>
             const myPermissions = channel.permissionsFor(await message.guild.members.fetchMe()).toArray();
 
             if (
-                ['ManageWebhooks', 'ManageChannels', 'ManageRoles', 'SendMessages', 'EmbedLinks', 'AttachFiles', 'ReadMessageHistory'].some(
-                    (p: any) => !myPermissions.includes(p)
-                )
+                [
+                    'ManageWebhooks',
+                    'ManageChannels',
+                    'ManageRoles',
+                    'ManageMessages',
+                    'SendMessages',
+                    'EmbedLinks',
+                    'AttachFiles',
+                    'ReadMessageHistory',
+                ].some((p: any) => !myPermissions.includes(p))
             ) {
                 return;
             }
@@ -130,7 +135,7 @@ export default class MessageCreate extends Listener<typeof Events.MessageCreate>
                                     currentCount.count = nextCount;
                                     await this.bot.caches.counts.set(message.guild!.id, currentCount, true);
 
-                                    await sendToWebhook(this.bot, guildConfig.webhook.id!, guildConfig.webhook.token!, {
+                                    const apiMsg = await sendToWebhook(this.bot, guildConfig.webhook.id!, guildConfig.webhook.token!, {
                                         username: message.member!.displayName,
                                         avatarURL: message.author.displayAvatarURL(),
                                         content: providedInt.toLocaleString('en-US'),
@@ -151,6 +156,80 @@ export default class MessageCreate extends Listener<typeof Events.MessageCreate>
                                         }
                                         if (myPermissions.includes('AddReactions')) {
                                             await ggMessage.react('🎉');
+                                        }
+                                    }
+
+                                    let msg: Message | null = null;
+
+                                    const rules = parseJoshFilterResponse<GuildRule>(
+                                        await this.bot.databases.rules.filter('guild', guildConfig.id)
+                                    );
+                                    for (let i = 0; i < rules.length; i++) {
+                                        const rule = rules[i][1];
+                                        if (!rule) {
+                                            continue;
+                                        }
+                                        switch (rule.type) {
+                                            case 'equals': {
+                                                if (providedInt !== rule.value) {
+                                                    continue;
+                                                }
+                                                break;
+                                            }
+                                            case 'multiple_of': {
+                                                if (providedInt % rule.value !== 0) {
+                                                    continue;
+                                                }
+                                                break;
+                                            }
+                                        }
+                                        if (!msg) {
+                                            msg = (await waitFor<Message>(channel.messages.fetch(apiMsg.id)))[0];
+                                            if (!msg) {
+                                                break;
+                                            }
+                                        }
+                                        switch (rule.action.type) {
+                                            case 'pin': {
+                                                const pins = await channel.messages.fetchPinned();
+                                                if (pins.size === 50) {
+                                                    const target = pins.filter((m) => m.webhookId !== null).first();
+                                                    if (target) {
+                                                        await target.unpin(`Making room for a new pin; automatic rule-based action: ${rule.id}`);
+                                                    } else {
+                                                        break;
+                                                    }
+                                                }
+                                                if (!msg.pinned && msg.pinnable) {
+                                                    await msg.pin(`Automatic rule-based action: ${rule.id}`);
+                                                }
+                                                break;
+                                            }
+                                            case 'send_dm': {
+                                                const row = new ActionRowBuilder<ButtonBuilder>().addComponents([
+                                                    new ButtonBuilder()
+                                                        .setLabel(`Sent by: ${message.guild!.name}`)
+                                                        .setCustomId('null')
+                                                        .setStyle(ButtonStyle.Secondary)
+                                                        .setDisabled(true),
+                                                ]);
+                                                await sendViaDirectMessages(this.bot, message.author, {
+                                                    content: rule.action.content,
+                                                    components: [row],
+                                                });
+                                                break;
+                                            }
+                                            case 'send_message': {
+                                                if (myPermissions.includes('SendMessages')) {
+                                                }
+                                                await channel.send({
+                                                    content: rule.action.content,
+                                                });
+                                                break;
+                                            }
+                                            default: {
+                                                console.warn(new Error(`Warning: unknown rule action type ${rule.action.type}`));
+                                            }
                                         }
                                     }
                                 } else {

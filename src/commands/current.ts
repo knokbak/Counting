@@ -39,7 +39,7 @@ export default class Current extends Command {
 
         interaction.reply({
             content: `The next count is **${(currentCount.count + 1).toLocaleString('en-US')}**!`,
-            ephemeral: guildConfig.channel === interaction.channelId,
+            ephemeral: true,
         });
 
         if (interaction.memberPermissions?.has('ManageMessages') || interaction.user.id === process.env.BOT_OWNER_ID) {

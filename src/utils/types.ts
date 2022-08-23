@@ -38,6 +38,36 @@ export const GuildConfigDefault: GuildConfig = {
     allowDoublePost: false,
 };
 
+export type GuildRule = {
+    id: string;
+    guild: string;
+    trigger: 'count';
+    type: 'multiple_of' | 'equals';
+    value: number;
+    action: GuildRuleAction;
+};
+
+export type GuildRuleAction =
+    | {
+          type: 'pin';
+      }
+    | {
+          type: 'send_dm';
+          content: string;
+      }
+    | {
+          type: 'send_message';
+          content: string;
+      }
+    | {
+          type: 'add_role';
+          role: string;
+      }
+    | {
+          type: 'remove_role';
+          role: string;
+      };
+
 export type CountEntry = {
     guild: string;
     lastCounter: string | null;

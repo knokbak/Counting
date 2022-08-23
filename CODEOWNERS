@@ -1,5 +1,6 @@
 .github/
 dist/
+data/
 .idea/
 .vscode/
 node_modules/

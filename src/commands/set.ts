@@ -64,7 +64,7 @@ export default class Set extends Command {
 
         interaction.reply({
             content: `The count has been set to ${count.toLocaleString('en-US')}!`,
-            ephemeral: guildConfig.channel === interaction.channelId,
+            ephemeral: true,
         });
 
         if (guildConfig.webhook.id && guildConfig.webhook.token) {
