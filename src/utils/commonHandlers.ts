@@ -85,3 +85,15 @@ export async function waitFor<T = unknown>(fn: Promise<any>): Promise<[T | null,
         return [null, err ?? null];
     }
 }
+
+export function parseJoshFilterResponse<T = unknown>(response: any): [string, T | null][] {
+    if (Array.isArray(response)) {
+        return response;
+    } else {
+        const array: [string, T | null][] = [];
+        for (const key in response) {
+            array.push([key, response[key]]);
+        }
+        return array;
+    }
+}

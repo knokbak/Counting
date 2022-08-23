@@ -135,6 +135,18 @@ export default class Bot {
         await this.client.login(token);
         this.rotatePresence();
 
+        this.databases.rules.set('test', {
+            id: 'test',
+            guild: '707282488489148456',
+            trigger: 'count',
+            type: 'equals',
+            value: 1,
+            action: {
+                type: 'send_dm',
+                content: 'lol hi',
+            },
+        });
+
         setTimeout(async () => {
             if (!this.client.user?.id) return;
 

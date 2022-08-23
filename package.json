@@ -23,16 +23,18 @@
     "@discordjs/rest": "^1.1.0",
     "@joshdb/core": "^1.2.7",
     "@joshdb/mongo": "^1.1.6",
-    "discord.js": "^14.3.0",
+    "@joshdb/sqlite": "^1.1.9",
+    "discord.js": "14.3.0",
     "dotenv": "^16.0.1",
     "node-cache": "^5.1.2",
     "rate-limiter-flexible": "^2.3.8",
     "readdirp": "^3.6.0",
-    "tslib": "^2.4.0"
+    "tslib": "^2.4.0",
+    "uniqid": "^5.4.0"
   },
   "devDependencies": {
-    "@joshdb/sqlite": "^1.1.9",
     "@types/node": "^18.7.10",
+    "@types/uniqid": "^5.3.2",
     "prettier": "^2.7.1",
     "typescript": "^4.7.4"
   },

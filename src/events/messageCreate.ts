@@ -17,9 +17,9 @@
  */
 
 import { Message, Events, ChannelType, TextChannel, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { CountEntryDefault, GuildConfig } from '../utils/types';
+import { CountEntryDefault, GuildConfig, GuildRule } from '../utils/types';
 import { Listener } from '../utils/classes/Listener';
-import { sendToWebhook, sendViaDirectMessages, waitFor } from '../utils/commonHandlers';
+import { sendToWebhook, sendViaDirectMessages, waitFor, parseJoshFilterResponse } from '../utils/commonHandlers';
 import { RateLimiterRes } from 'rate-limiter-flexible';
 
 export default class MessageCreate extends Listener<typeof Events.MessageCreate> {
@@ -161,7 +161,9 @@ export default class MessageCreate extends Listener<typeof Events.MessageCreate>
 
                                     let msg: Message | null = null;
 
-                                    const rules = await this.bot.databases.rules.filter('guild', guildConfig.id);
+                                    const rules = parseJoshFilterResponse<GuildRule>(
+                                        await this.bot.databases.rules.filter('guild', guildConfig.id)
+                                    );
                                     for (let i = 0; i < rules.length; i++) {
                                         const rule = rules[i][1];
                                         if (!rule) {
@@ -189,6 +191,15 @@ export default class MessageCreate extends Listener<typeof Events.MessageCreate>
                                         }
                                         switch (rule.action.type) {
                                             case 'pin': {
+                                                const pins = await channel.messages.fetchPinned();
+                                                if (pins.size === 50) {
+                                                    const target = pins.filter((m) => m.webhookId !== null).first();
+                                                    if (target) {
+                                                        await target.unpin(`Making room for a new pin; automatic rule-based action: ${rule.id}`);
+                                                    } else {
+                                                        break;
+                                                    }
+                                                }
                                                 if (!msg.pinned && msg.pinnable) {
                                                     await msg.pin(`Automatic rule-based action: ${rule.id}`);
                                                 }
