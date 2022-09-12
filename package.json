@@ -27,7 +27,7 @@
     "discord.js": "14.3.0",
     "dotenv": "^16.0.1",
     "node-cache": "^5.1.2",
-    "rate-limiter-flexible": "^2.3.8",
+    "rate-limiter-flexible": "^2.3.10",
     "readdirp": "^3.6.0",
     "tslib": "^2.4.0",
     "uniqid": "^5.4.0"
