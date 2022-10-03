@@ -25,7 +25,7 @@
     "@joshdb/mongo": "^1.1.6",
     "@joshdb/sqlite": "^1.1.9",
     "discord.js": "14.3.0",
-    "dotenv": "^16.0.2",
+    "dotenv": "^16.0.3",
     "node-cache": "^5.1.2",
     "rate-limiter-flexible": "^2.3.11",
     "readdirp": "^3.6.0",
